@@ -4,32 +4,35 @@
 # then please put 'unknown'.
 
 # Maintainer: James Williams <jowilliams12000 at gmail dot com>
-pkgname=wallust-git
+pkgname='wallust-git'
+_pkgname="wallust"
 pkgver=2.9.0.r5.g0a6981a
 pkgrel=4
 pkgdesc="generate colors from an image"
 arch=('any')
 url="https://codeberg.org/explosion-mental/wallust"
 license=('custom:MIT')
-makedepends=('cargo' 'git')
-optdepends=('imagemagick')
+makedepends=('cargo' 'git' 'make')
+provides=('wallust')
+conflicts=('wallust')
+optdepends=('imagemagick: WAL backend support')
 source=("$pkgname::git+$url#branch=dev")
 sha256sums=('SKIP')
 
 pkgver() {
-	cd "$pkgname"
+	cd "$_pkgname"
 	git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 build() {
-	cd "$pkgname"
+	cd "$_pkgname"
 	export RUSTUP_TOOLCHAIN=stable
 	export CARGO_BUILD_DIR=target
-	cargo build --frozen --release
+	make CARGOFLAGS="--frozen --release"
 }
 
 package() {
 	cd "$pkgname"
-	install -Dm755 target/release/wallust -t "${pkgdir}/usr/bin"
+	make PREFIX=/usr DESTDIR="$pkgdir" install
 	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/wallust/LICENSE"
 }
